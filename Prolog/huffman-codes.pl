@@ -146,10 +146,68 @@ encode_real([Symbol | TailMessage], BitsTable, TailBits) :-
 	union(Bits, TailBits2, TailBits).
 
 
-decode_real([Bit | Tail], OtherBits, BitsTable, [Symbol | Message]) :- union( OtherBits, [Bit], Res), get_bits_for_symbol(BitsTable, Symbol, Res), decode_real(Tail, [], BitsTable, Message), !.
-decode_real([Bit | Tail], OtherBits, BitsTable, Message) :- union([Bit], OtherBits, Res), decode_real(Tail, Res, BitsTable, Message), !.
-decode_real(Bits, [], BitsTable, [Symbol | []]) :- get_bits_for_symbol(BitsTable, Symbol, Bits).
+decode_real([Bit | Tail], OtherBits, BitsTable, [Symbol | Message]) :- write('\nA: '), write(Bit), write('  '), write(OtherBits), union( OtherBits, [Bit], Res), get_bits_for_symbol(BitsTable, Symbol, Res), decode_real(Tail, [], BitsTable, Message), !.
+decode_real([Bit | Tail], OtherBits, BitsTable, Message) :- write('\nB: '), union(OtherBits, [Bit], Res), decode_real(Tail, Res, BitsTable, Message), !.
+decode_real(Bits, [], BitsTable, [Symbol | []]) :- write('\nC: '), get_bits_for_symbol(BitsTable, Symbol, Bits).
 
+read_line(Stream, List) :-
+	read_line_to_codes(Stream, Line),
+	atom_codes(List, Line).
+	%atomic_list_concat(As, ' ' , A),
+	%maplist(string_chars, As, List).
+
+read_file(Stream,[]) :-
+    at_end_of_stream(Stream), !.
+
+read_file(Stream,[X|L]) :-
+    \+ at_end_of_stream(Stream),
+    read_line(Stream,X),
+    read_file(Stream,L).
+
+lines_to_chars([], []).
+
+lines_to_chars([Line | LineTail], [Chars | CharsTail]) :-
+	string_chars(Line, Chars),
+	lines_to_chars(LineTail, CharsTail).
+
+%flat_chars_list(_, _).
+flat_chars_list([], []).
+%flat_chars_list([Item], Item).
+%flat_chars_list(Line1, Line1).
+flat_chars_list([Line1, Line2 | LineTail], Final) :-
+	union(Line1, ['\n'], Partial1),
+	union(Partial1, Line2, Partial2),
+	%write(Partial2),
+	%write('-y'),
+	union([Partial2], LineTail, Partial4),
+	%write('-z'),
+	%write(Partial4),
+	flat_chars_list(Partial4, Partial3),
+	%write(Partial3),
+	%write('-x'),
+				%union(Partial2, Partial3, Final),
+	Final = Partial3, !.
+	%write('***'),
+	%write(Final),
+	%write('***'), !.
+	%flat_chars_list(Line1, Line1).
+
+flat_chars_list([Line1], Line1).
+main2 :-
+    open('file.txt', read, Str),
+    read_file(Str,Lines),
+    close(Str),
+    lines_to_chars(Lines, Chars),
+    flat_chars_list(Chars, Chars2),
+    write(Chars2), nl.
+
+he_encode_file(BitTable, Res) :-
+	open('file.txt', read, Str),
+	read_file(Str,Lines),
+	close(Str),
+	lines_to_chars(Lines, Chars),
+	flat_chars_list(Chars, Chars2),
+	encode_real(Chars2, BitTable, Res).
 
 %he_encode(Message, HuffmanTree, Bits) :-
 	
