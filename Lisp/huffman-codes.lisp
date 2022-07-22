@@ -39,7 +39,7 @@
 (defun he-generate-huffman-tree (nodes)
   (cond
    ((= (len nodes) 1) (car nodes))
-   (T (final-generate-huffman (real-generate-huffman (sort-nodes nodes))))))
+   (T (he-generate-huffman-tree (real-generate-huffman (sort-nodes nodes))))))
 
 (defun get-symbol-from-bits (bits-table bits)
   (cond
@@ -85,3 +85,32 @@
 (defun test (list)
   (cond ((null list) 0)
 	(t (+ 1 (test (cdr list))))))
+
+(defun print-spaces (count)
+  (cond
+   ((= count 0) NIL)
+   (T (and (write '" " ) (print-spaces (- count 1))))))
+
+(defun get-spaces (count)
+  (cond
+   ((= count 0) NIL)
+   (T (append (list #\Space) (get-spaces (- count 1))))))
+
+(defun he-print-huffman-tree (huffman-tree &optional (indent-level 0))
+  (cond
+   ((listp (car (cdr (car huffman-tree)))) (he-print-huffman-tree (cdr (car huffman-tree)) (+ indent-level 1)))
+   (T huffman-tree)))
+
+(defun get-tree-for-print (huffman-tree indent-level)
+  (cond
+   ((null huffman-tree) nil)
+   ((listp (car (cdr huffman-tree))) (append
+				      (get-spaces (* indent-level 4))
+				      (list #\( (car huffman-tree) #\) #\Newline)
+				      (get-tree-for-print (car (cdr huffman-tree)) (+ indent-level 1))
+				      (get-tree-for-print (car (cdr (cdr huffman-tree))) (+ indent-level 1))))
+   ((null huffman-tree) nil)
+   (T (append (get-spaces (* indent-level 4)) (list (car (cdr huffman-tree)) #\Space #\( (car huffman-tree) #\) #\Newline)))))
+
+(defun he-print-huffman-tree (huffman-tree &optional (indent-level 0))
+  (format t "~&~{~A~}~%" (get-tree-for-print huffman-tree indent-level)))
