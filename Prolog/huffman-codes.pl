@@ -34,7 +34,7 @@ sort_symbols_and_weights(SymbolsAndWeights, SortedSymbolAndWeights) :-
 	get_pairs_by_sorted_weights(SymbolsAndWeights, Symbols, SortedWeights, SortedSymbolAndWeights).
 	%extract_symbols_weights(SortedSymbolAndWeights, Symbols, SortedWeights).
 
-% sort_symbols_and_weights([[Symbol | Weight] | Tail], [_ | SortedWeigt] | SortedTail]) :- 
+% sort_symbols_and_weights([[Symbol | Weight] | Tail], [_ | SortedWeigt] | SortedTail]) :-
 
 %create_nodes([], _).
 %create_nodes([[Symbol, Weight] | Tail], [[Weight, [Symbol]] | NodesTail]) :- create_nodes(Tail, NodesTail).
@@ -124,13 +124,13 @@ subnode_generate_symbol_bits([[_, SubNodesA], [_, SubNodesB]], Prefix, Solution)
 	subnode_generate_symbol_bits(SubNodesA, NodeAPrefix, Res1),
 	subnode_generate_symbol_bits(SubNodesB, NodeBPrefix, Res2),
 	union(Res1, Res2, Solution), !.
-				    
-	
+
+
 % real_generate_symbol_bits_table([_, SubNodes], Prefix, SymbolBitsTable) :-
 
 get_bits_for_symbol([[FirstSymbol, FirstBits] | TailSymbolBitsTable], FirstSymbol, FirstBits) :- !.
 get_bits_for_symbol([FirstSymbolBitsTable | TailSymbolBitsTable], Symbol, Bits) :- get_bits_for_symbol(TailSymbolBitsTable, Symbol, Bits).
-	
+
 
 encode_real([], _, []).
 
@@ -210,9 +210,9 @@ he_encode_file(BitTable, Res) :-
 	encode_real(Chars2, BitTable, Res).
 
 %he_encode(Message, HuffmanTree, Bits) :-
-	
+
 
 % he_generate_symbol_bits_table(HuffmanTree, SymbolBitsTable) :-
-	
+
 
 %%%% end of file -- huffman-codes.pl --
