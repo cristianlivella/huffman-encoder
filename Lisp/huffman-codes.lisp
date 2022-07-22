@@ -28,55 +28,52 @@
 ;	   ) (list first-node second-node)))
 ;   ((+ (car (first nodes)) (car (second nodes))) (first nodes) (second nodes))))
 
-(defun real-generate-symbol-bits-table (huffman-tree prefix)
+(defun he-generate-symbol-bits-table (huffman-tree &optional prefix)
   (cond
    ((and (listp huffman-tree) (> (len huffman-tree) 1)) (append
-			  (real-generate-symbol-bits-table (cdr (first huffman-tree)) (append prefix '(0)))
-			  (real-generate-symbol-bits-table (cdr (second huffman-tree)) (append prefix '(1)))))
-   (T (list (cons huffman-tree prefix)))))
+			  (he-generate-symbol-bits-table (cdr (first huffman-tree)) (append prefix '(0)))
+			  (he-generate-symbol-bits-table (cdr (second huffman-tree)) (append prefix '(1)))))
+   (T (list (cons (car huffman-tree) prefix)))))
    
 
-(defun he-generate-huffman-tree (nodes)
+(defun hee-generate-huffman-tree (nodes)
   (cond
    ((= (len nodes) 1) (car nodes))
-   (T (he-generate-huffman-tree (real-generate-huffman (sort-nodes nodes))))))
+   (T (hee-generate-huffman-tree (real-generate-huffman (sort-nodes nodes))))))
+
+(defun he-generate-huffman-tree (symbols-n-weights)
+  (hee-generate-huffman-tree (create-nodes symbols-n-weights)))
 
 (defun get-symbol-from-bits (bits-table bits)
   (cond
    ((null bits-table) NIL)
-   ((equal (cdr (first bits-table)) bits) (car (car (first bits-table))))
+   ((equal (cdr (first bits-table)) bits) (car (first bits-table)))
    (T (get-symbol-from-bits (cdr bits-table) bits))))
 
 (defun get-bits-from-symbol (bits-table symbol)
   (cond
    ((null bits-table) NIL)
-   ((equal (car (car (first bits-table))) symbol) (cdr (first bits-table)))
+   ((equal (car (first bits-table)) symbol) (cdr (first bits-table)))
    (T (get-bits-from-symbol (cdr bits-table) symbol))))
 
-(defun encode-real (message symbol-bits-table)
+(defun he-encode (message huffman-tree)
   (cond
    ((null message) NIL)
-   (T (append (get-bits-from-symbol symbol-bits-table (car message)) (encode-real(cdr message) symbol-bits-table)))))
-
-
-(defun decode-real (bits bits-head symbol-bits-table)
-  ((lambda (symbol bits bits-head symbol-bits-table)
-     (cond
-      ((and (write bits) (write bits-head) (write symbol) (write "  ") NIL) 0)
-      ((null bits) NIL)
-      ((null symbol) (decode-real (cdr bits) (append bits-head (list (car bits))) symbol-bits-table))
-      (T (append (list symbol) (decode-real (cdr bits) (list) symbol-bits-table)))))
-   (get-symbol-from-bits symbol-bits-table (append bits-head (list (car bits)))) bits bits-head symbol-bits-table))
+   (T ((lambda (symbol-bits-table)
+	 (append (get-bits-from-symbol symbol-bits-table (car message))
+		 (he-encode (cdr message) huffman-tree)))
+       (he-generate-symbol-bits-table huffman-tree)))))
+;   (T (append (get-bits-from-symbol symbol-bits-table (car message)) (he-encode (cdr message) symbol-bits-table)))))
 
 (defun file-stream-to-list (stream)
   ((lambda (line)
      (cond
-      ((not (null line)) (append (coerce line 'list) (list #\Newline) (file-stream-to-list stream)))))
-   (read-line stream nil)))
+      ((not (null line)) (append (coerce line 'list) (list #\Newline) ((file-stream-to-list stream)))))
+   (read-line stream nil))))
 
-(defun get-file (filename)
+(defun he-encode-file (filename huffman-tree)
   (with-open-file (stream filename)
-    (file-stream-to-list stream)))
+    (he-encode (file-stream-to-list stream) huffman-tree)))
 
 ;(defun he-encode-file (filename huffman-tree)
 ;(defun he-generate-symbol-bits-table (huffman-tree)
@@ -96,10 +93,10 @@
    ((= count 0) NIL)
    (T (append (list #\Space) (get-spaces (- count 1))))))
 
-(defun he-print-huffman-tree (huffman-tree &optional (indent-level 0))
-  (cond
-   ((listp (car (cdr (car huffman-tree)))) (he-print-huffman-tree (cdr (car huffman-tree)) (+ indent-level 1)))
-   (T huffman-tree)))
+;(defun he-print-huffman-tree (huffman-tree &optional (indent-level 0))
+;  (cond
+;   ((listp (car (cdr (car huffman-tree)))) (he-print-huffman-tree (cdr (car huffman-tree)) (+ indent-level 1)))
+;   (T huffman-tree)))
 
 (defun get-tree-for-print (huffman-tree indent-level)
   (cond
@@ -111,6 +108,17 @@
 				      (get-tree-for-print (car (cdr (cdr huffman-tree))) (+ indent-level 1))))
    ((null huffman-tree) nil)
    (T (append (get-spaces (* indent-level 4)) (list (car (cdr huffman-tree)) #\Space #\( (car huffman-tree) #\) #\Newline)))))
+
+(defun decode (bits bits-head symbol-bits-table)
+  ((lambda (symbol bits bits-head symbol-bits-table)
+     (cond
+      ((null bits) NIL)
+      ((null symbol) (decode (cdr bits) (append bits-head (list (car bits))) symbol-bits-table))
+      (T (append (list symbol) (decode (cdr bits) (list) symbol-bits-table)))))
+   (get-symbol-from-bits symbol-bits-table (append bits-head (list (car bits)))) bits bits-head symbol-bits-table))
+
+(defun he-decode (bits symbol-bits-table)
+  (decode bits (list) symbol-bits-table))
 
 (defun he-print-huffman-tree (huffman-tree &optional (indent-level 0))
   (format t "~&~{~A~}~%" (get-tree-for-print huffman-tree indent-level)))
