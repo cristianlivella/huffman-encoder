@@ -16,11 +16,11 @@
 ;;; from a list of symbols and weights (symbol . weight).
 (defun create-nodes (symbols-n-weights)
   (cond
-    ((null symbols-n-weights) NIL)
-    (T (append (list (cons
-		      (cdr (car symbols-n-weights))
-		      (list (car (car symbols-n-weights)))))
-	       (create-nodes (cdr symbols-n-weights))))))
+   ((null symbols-n-weights) NIL)
+   (T (append (list (cons
+		     (cdr (car symbols-n-weights))
+		     (list (car (car symbols-n-weights)))))
+	      (create-nodes (cdr symbols-n-weights))))))
 
 ;;; Return the list of nodes sorted by weigts.
 (defun sort-nodes (nodes)
@@ -42,8 +42,8 @@
       ((null bits) NIL)
       ((null symbol)
        (decode (cdr bits)
-		  symbol-bits-table
-		  (append bits-head (list (car bits)))))
+	       symbol-bits-table
+	       (append bits-head (list (car bits)))))
       (T (append (list symbol) (decode (cdr bits) symbol-bits-table (list))))))
    (get-symbol-from-bits
     symbol-bits-table
@@ -102,7 +102,7 @@
 	(coerce line 'list)
 	(list #\Newline)
 	(file-stream-to-list stream)))))
-     (read-line stream nil)))
+   (read-line stream nil)))
 
 ;;; Return a list of characters containing the choised number of spaces.
 (defun get-spaces (count)
@@ -148,7 +148,7 @@
 ;;; given a filename and the huffman tree.
 (defun he-encode-file (filename huffman-tree)
   (with-open-file (stream filename)
-    (he-encode (file-stream-to-list stream) huffman-tree)))
+		  (he-encode (file-stream-to-list stream) huffman-tree)))
 
 ;;; Return a huffman tree form a list of symbols-n-weights (symbol . weight).
 (defun he-generate-huffman-tree (symbols-n-weights)
