@@ -5,6 +5,22 @@
 
 %%% UTILS
 
+%%% message/1
+%%% message(Message)
+%%% True if Message is a valid message.
+
+message([Symbol]) :- atom(Symbol), !.
+message([First | Rest]) :- atom(First), message(Rest).
+
+%%% symbol_n_weights/1
+%%% symbol_n_weights(SymbolsAndWeights)
+%%% True if SymbolsAndWeights is a valid symbols and weights list.
+
+symbol_n_weights([(Symbol, Weight)]) :- atom(Symbol), number(Weight), !.
+symbol_n_weights([(Symbol, Weight) | Rest]) :- atom(Symbol),
+					       number(Weight),
+					       symbol_n_weights(Rest).
+
 %%% list_contain/2
 %%% list_contain(Haystack, Needle) means 'Needle is contained in Haystack'.
 
@@ -12,8 +28,8 @@ list_contain([ToFind | _], ToFind) :- !.
 list_contain([_ | Tail], ToFind) :- list_contain(Tail, ToFind).
 
 %%% create_nodes/2
-%%% create_nodes(SymbolAndWeights, Nodes)
-%%% Nodes is a list of nodes (leaves) created from SymbolAndWeights.
+%%% create_nodes(SymbolsAndWeights, Nodes)
+%%% Nodes is a list of nodes (leaves) created from SymbolsAndWeights.
 
 create_nodes([(Symbol, Weight)], [(Weight, [Symbol])]).
 create_nodes([(Symbol, Weight) | Tail], [(Weight, [Symbol]) | NodesTail]) :-
@@ -250,13 +266,15 @@ print_huffman_tree((Weight, [Child]), IndentLevel) :-
 
 he_decode(Bits, HuffmanTree, Message) :-
     he_generate_symbol_bits_table(HuffmanTree, SymbolBitsTable),
-    decode(Bits, [], SymbolBitsTable, Message).
+    decode(Bits, [], SymbolBitsTable, Message),
+    message(Message).
 
 %%% he_encode/3
 %%% he_encode(Message, HuffmanTree, Bits)
 %%% Bits is the encoded Message, using the provided HuffmanTree.
 
 he_encode(Message, HuffmanTree, Bits) :-
+    message(Message),
     he_generate_symbol_bits_table(HuffmanTree, SymbolBitsTable),
     encode(Message, SymbolBitsTable, Bits).
 
@@ -268,6 +286,7 @@ he_encode_file(File, HuffmanTree, Bits) :-
     open(File, read, Stream),
     read_stream(Stream, Message),
     close(Stream),
+    message(Message),
     he_encode(Message, HuffmanTree, Bits).
 
 %%% he_generate_huffman_tree/2
@@ -275,6 +294,7 @@ he_encode_file(File, HuffmanTree, Bits) :-
 %%% HuffmanTree is a huffman tree generated from SymbolsAndWeights.
 
 he_generate_huffman_tree(SymbolsAndWeights, HuffmanTree) :-
+    symbol_n_weights(SymbolsAndWeights),
     create_nodes(SymbolsAndWeights, Nodes),
     sort_nodes(Nodes, SortedNodes),
     generate_huffman_tree(SortedNodes, HuffmanTree),
