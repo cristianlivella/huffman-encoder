@@ -15,7 +15,7 @@ foreach ($fileContent as $char) {
 $pairs = [];
 
 foreach ($countRepetitions as $char => $count) {
-  $pairs[] = '[' . json_encode($char) . ', ' . $count . ']';
+  $pairs[] = '(' . str_replace('"', '\'', json_encode($char)) . ', ' . $count . ')';
 }
 
 echo '[' . implode(', ', $pairs) . ']' . PHP_EOL;
