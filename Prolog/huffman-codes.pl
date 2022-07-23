@@ -16,28 +16,41 @@ list_contain([_ | Tail], ToFind) :- list_contain(Tail, ToFind).
 %%% Nodes is a list of nodes (leaves) created from SymbolAndWeights.
 
 create_nodes([(Symbol, Weight)], [(Weight, [Symbol])]).
-create_nodes([(Symbol, Weight) | Tail], [(Weight, [Symbol]) | NodesTail]) :- create_nodes(Tail, NodesTail).
+create_nodes([(Symbol, Weight) | Tail], [(Weight, [Symbol]) | NodesTail]) :-
+	create_nodes(Tail, NodesTail).
 
 %%% find_node_weight/3
 %%% find_node_weight(Nodes, Children, Weight)
-%%% The list Nodes contains a node with weight = Weight and children = Children.
+%%% The list Nodes contains a node with weight = Weight
+%%% and children = Children.
 
 find_node_weight([(Weight, Children) | _], Children, Weight).
-find_node_weight([_ | Tail], Children, Weight) :- find_node_weight(Tail, Children, Weight).
+find_node_weight([_ | Tail], Children, Weight) :-
+	find_node_weight(Tail, Children, Weight).
 
 %%% get_nodes_with_sorted_weights/4
-%%% get_nodes_with_sorted_weights(OriginalNodes, ChildrenList, Weights, SortedNodes)
+%%% get_nodes_with_sorted_weights(OriginalNodes,
+%%%                               ChildrenList,
+%%%                               Weights,
+%%%                               SortedNodes)
 %%% SortedNodes is a list that contain the same couples
 %%% contained in OriginalNodes, ordered by weights according to Weights list.
 
-get_nodes_with_sorted_weights(OriginalNodes, ChildrenList, [Weight | WeightTail], [(Weight, Children) | TailSortedNodes]) :-
+get_nodes_with_sorted_weights(OriginalNodes,
+			      ChildrenList,
+			      [Weight | WeightTail],
+			      [(Weight, Children) | TailSortedNodes]) :-
 	find_node_weight(OriginalNodes, Children, Weight),
 	list_contain(ChildrenList, Children),
 	delete(ChildrenList, Children, NewChildrenList),
-	get_nodes_with_sorted_weights(OriginalNodes, NewChildrenList, WeightTail, TailSortedNodes),
+	get_nodes_with_sorted_weights(OriginalNodes,
+				      NewChildrenList,
+				      WeightTail,
+				      TailSortedNodes),
 	!.
 
-get_nodes_with_sorted_weights(_, [Children], [Weight], [(Weight, Children)]) :- !.
+get_nodes_with_sorted_weights(_, [Children], [Weight], [(Weight, Children)]) :-
+	!.
 
 %%% extract_weight_node/3
 %%% extract_weight_node(Node, Weight, Children)
@@ -51,7 +64,9 @@ extract_weight_node((Weight, Children), Weight, Children).
 %%% in a list of Weights and a list of Children.
 
 extract_weights_children([], [], []).
-extract_weights_children([Node | Tail], [Weight | TailWeights], [Nodes | TailNodes]) :-
+extract_weights_children([Node | Tail],
+			 [Weight | TailWeights],
+			 [Nodes | TailNodes]) :-
 	extract_weight_node(Node, Weight, Nodes),
 	extract_weights_children(Tail, TailWeights, TailNodes).
 
@@ -63,14 +78,21 @@ extract_weights_children([Node | Tail], [Weight | TailWeights], [Nodes | TailNod
 sort_nodes(Nodes, SortedNodes) :-
 	extract_weights_children(Nodes, Weights, SubNodes),
 	sort(0, '@=<', Weights, SortedWeights),
-	get_nodes_with_sorted_weights(Nodes, SubNodes, SortedWeights, SortedNodes).
+	get_nodes_with_sorted_weights(Nodes,
+				      SubNodes,
+				      SortedWeights,
+				      SortedNodes).
 
 %%% prepend_new_node/5
 %%% prepend_new_node(FirstNode, SecondNode, SumWeight, Tail, NewNodes).
 %%% NewNodes contains the nodes in Tail, prepended with a new node
 %%% with weight = SumWeight and with children FirstNode and SecondNode.
 
-prepend_new_node(FirstNode, SecondNode, SumWeight, Tail, [(SumWeight, [FirstNode, SecondNode]) | Tail]).
+prepend_new_node(FirstNode,
+		 SecondNode,
+		 SumWeight,
+		 Tail,
+		 [(SumWeight, [FirstNode, SecondNode]) | Tail]).
 
 %%% group_first_two_nodes/3
 %%% group_first_two_nodes(Nodes, NewNodes).
@@ -79,7 +101,11 @@ prepend_new_node(FirstNode, SecondNode, SumWeight, Tail, [(SumWeight, [FirstNode
 
 group_first_two_nodes([(FirstW, FirstC), (SecondW, SecondC) | Rest], Node) :-
 	SumWeight is FirstW + SecondW,
-	prepend_new_node((FirstW, FirstC), (SecondW, SecondC), SumWeight, Rest, Node).
+	prepend_new_node((FirstW, FirstC),
+			 (   SecondW, SecondC),
+			 SumWeight,
+			 Rest,
+			 Node).
 
 %%% generate_huffman_tree/2
 %%% generate_huffman_tree(Nodes, Tree)
@@ -120,7 +146,8 @@ generate_symbol_bits_table([(_, ChildrenA), (_, ChildrenB)], Prefix, Solution) :
 %%% by looking up in the SymbolBitsTable.
 
 get_bits_for_symbol([(FirstSymbol, FirstBits) | _], FirstSymbol, FirstBits) :- !.
-get_bits_for_symbol([_ | TailSymbolBitsTable], Symbol, Bits) :- get_bits_for_symbol(TailSymbolBitsTable, Symbol, Bits).
+get_bits_for_symbol([_ | TailSymbolBitsTable], Symbol, Bits) :-
+	get_bits_for_symbol(TailSymbolBitsTable, Symbol, Bits).
 
 %%% decode/4
 %%% decode(Bits, HeadBits, SymbolBitsTable, Message)
