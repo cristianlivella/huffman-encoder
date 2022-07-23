@@ -5,20 +5,6 @@
 
 %%% UTILS
 
-%%% extract_symbol_weight/3 --
-
-extract_symbol_weight((Symbol, Weight), Symbol, Weight).
-
-%%% extract_symbol_weights/3 --
-%%% extract_symbol_weights(SymbolsAndWeights, Symbols, Weights)
-%%% The list of couples SymbolsAndWeights is splitted
-%%% in a list of Symbols and a list of Weights.
-
-extract_symbols_weights([], [], []).
-extract_symbols_weights([Pair | Tail], [Symbol | TailSymbols], [Weight | TailWeights]) :-
-	extract_symbol_weight(Pair, Symbol, Weight),
-	extract_symbols_weights(Tail, TailSymbols, TailWeights).
-
 %%% find_symbol_weight/3
 %%% find_symbol_weight(SymbolsAndWeights, Symbol, Weight)
 %%% Find the SymbolAndWeights couples that match the given Symbol or Weight.
@@ -31,37 +17,6 @@ find_symbol_weight([_ | Tail], Symbol, Weight) :- find_symbol_weight(Tail, Symbo
 
 list_contain([ToFind | _], ToFind) :- !.
 list_contain([_ | Tail], ToFind) :- list_contain(Tail, ToFind).
-
-%%% get_pairs_by_sorted_weights/4
-%%% get_pairs_by_sorted_weight(OriginalSymbolsAndWeights,
-%%%                            Symbols,
-%%%                            Weights,
-%%%                            NewSymbolsAndWeights)
-%%% NewSymbolsAndWeights is a list that contain the same couples
-%%% contained in OriginalSymbolAndWeights, ordered by weights
-%%% according to Weights list.
-
-get_pairs_by_sorted_weights(_, _, [], _).
-
-get_pairs_by_sorted_weights(OriginalSymbolsAndWeights,
-			    Symbols,
-			    [Weight | WeightTail],
-			    [(Symbol, Weight) | TailNewSymbolAndWeights]) :-
-	find_symbol_weight(OriginalSymbolsAndWeights, Symbol, Weight),
-	list_contain(Symbols, Symbol),
-	delete(Symbols, Symbol, NewSymbols),
-	get_pairs_by_sorted_weights(OriginalSymbolsAndWeights, NewSymbols, WeightTail, TailNewSymbolAndWeights),
-	!.
-
-%%% sort_symbols_and_weights/2
-%%% sort_symbols_and_weights(SymbolsAndWeights, SortedSymbolsAndWeights)
-%%% SortedSymbolAndWeights contains the same couples
-%%% contained in SymbolsAndWeights, order by weight.
-
-sort_symbols_and_weights(SymbolsAndWeights, SortedSymbolAndWeights) :-
-	extract_symbols_weights(SymbolsAndWeights, Symbols, Weights),
-	sort(0, '@=<', Weights, SortedWeights),
-	get_pairs_by_sorted_weights(SymbolsAndWeights, Symbols, SortedWeights, SortedSymbolAndWeights).
 
 %%% create_nodes/2
 %%% create_nodes(SymbolAndWeights, Nodes)
@@ -126,10 +81,6 @@ sort_nodes(Nodes, SortedNodes) :-
 create_new_node(FirstW, FirstS, SecondW, SecondS, SumWeight, Tail, [[SumWeight, [[FirstW, FirstS], [SecondW, SecondS]]] | Tail]).
 %create_new_node(FirstW, FirstS, SecondW, SecondS, SumWeight, [[SumWeight, [[FirstW, FirstS], [SecondW, SecondS]]]]).
 
-%real_generate_huffman([[FirstW, FirstS], [SecondW, SecondS]], Node) :-
-%	SumWeight is FirstW + SecondW,
-%	create_node_node(FirstW, FirstS, SecondW, SecondS, SumWeight, Node).
-
 %%% real_generate_huffman/3
 %%% real_generate_huffman(Nodes, NewNodes).
 %%% NewNodes contains the same nodes as in Nodes,
@@ -150,17 +101,6 @@ final_generate_huffman(Nodes, Final) :-
 	real_generate_huffman(SortedNodes, Partial),
 	final_generate_huffman(Partial, Final).
 
-%%% he_generate_huffman_tree/2
-%%% he_generate_huffman_tree(SymbolsAndWeights, HuffmanTree)
-%%% HuffmanTree is a huffman tree generated from SymbolsAndWeights.
-
-he_generate_huffman_tree(SymbolsAndWeights, HuffmanTree) :-
-	%sort_symbols_and_weights(SymbolsAndWeights, SortedSymbolAndWeights),
-	create_nodes(SymbolsAndWeights, Nodes),
-	sort_nodes(Nodes, SortedNodes),
-	final_generate_huffman(SortedNodes, HuffmanTree),
-	!.
-
 %%% union/3
 %%% union(L1, L2, L3)
 %%% L3 is the union of L1, L2.
@@ -169,17 +109,17 @@ union([], [], []).
 union([L1 | L1T], L2, [L1 | L3T]) :- union(L1T, L2, L3T), !.
 union([], [L2 | L2T], [L2 | L3T]) :- union([], L2T, L3T).
 
-%%% subnode_generate_symbol_bits/3
-%%% subnode_generate_symbol_bits(Nodes, Prefix, SymbolBitsTable)
+%%% generate_symbol_bits_table/3
+%%% generate_symbol_bits_table(Nodes, Prefix, SymbolBitsTable)
 
-subnode_generate_symbol_bits([Node], Prefix, [(Node, Prefix)]) :-
+generate_symbol_bits_table([Node], Prefix, [(Node, Prefix)]) :-
 	atom(Node).
 
-subnode_generate_symbol_bits([[_, SubNodesA], [_, SubNodesB]], Prefix, Solution) :-
-	union(Prefix, ['0'], NodeAPrefix),
-	union(Prefix, ['1'], NodeBPrefix),
-	subnode_generate_symbol_bits(SubNodesA, NodeAPrefix, Res1),
-	subnode_generate_symbol_bits(SubNodesB, NodeBPrefix, Res2),
+generate_symbol_bits_table([[_, SubNodesA], [_, SubNodesB]], Prefix, Solution) :-
+	union(Prefix, [0], NodeAPrefix),
+	union(Prefix, [1], NodeBPrefix),
+	generate_symbol_bits_table(SubNodesA, NodeAPrefix, Res1),
+	generate_symbol_bits_table(SubNodesB, NodeBPrefix, Res2),
 	union(Res1, Res2, Solution), !.
 
 % real_generate_symbol_bits_table([_, SubNodes], Prefix, SymbolBitsTable) :-
@@ -187,25 +127,25 @@ subnode_generate_symbol_bits([[_, SubNodesA], [_, SubNodesB]], Prefix, Solution)
 get_bits_for_symbol([(FirstSymbol, FirstBits) | TailSymbolBitsTable], FirstSymbol, FirstBits) :- !.
 get_bits_for_symbol([FirstSymbolBitsTable | TailSymbolBitsTable], Symbol, Bits) :- get_bits_for_symbol(TailSymbolBitsTable, Symbol, Bits).
 
-encode_real([], _, []).
+encode([], _, []).
 
-encode_real([Symbol | TailMessage], BitsTable, TailBits) :-
+encode([Symbol | TailMessage], BitsTable, TailBits) :-
 	get_bits_for_symbol(BitsTable, Symbol, Bits),
-	encode_real(TailMessage, BitsTable, TailBits2),
+	encode(TailMessage, BitsTable, TailBits2),
 	union(Bits, TailBits2, TailBits).
 
-decode_real([Bit | Tail], OtherBits, BitsTable, [Symbol | Message]) :-
+decode([Bit | Tail], OtherBits, BitsTable, [Symbol | Message]) :-
 	union( OtherBits, [Bit], Res),
 	get_bits_for_symbol(BitsTable, Symbol, Res),
-	decode_real(Tail, [], BitsTable, Message),
+	decode(Tail, [], BitsTable, Message),
 	!.
 
-decode_real([Bit | Tail], OtherBits, BitsTable, Message) :-
+decode([Bit | Tail], OtherBits, BitsTable, Message) :-
 	union(OtherBits, [Bit], Res),
-	decode_real(Tail, Res, BitsTable, Message),
+	decode(Tail, Res, BitsTable, Message),
 	!.
 
-decode_real(Bits, [], BitsTable, [Symbol | []]) :-
+decode(Bits, [], BitsTable, [Symbol | []]) :-
 	get_bits_for_symbol(BitsTable, Symbol, Bits).
 
 read_line(Stream, List) :-
@@ -236,29 +176,6 @@ flat_chars_list([Line1, Line2 | LineTail], Final) :-
 
 flat_chars_list([Line1], Line1).
 
-main2 :-
-    open('file.txt', read, Str),
-    read_file(Str,Lines),
-    close(Str),
-    lines_to_chars(Lines, Chars),
-    flat_chars_list(Chars, Chars2),
-    write(Chars2), nl.
-
-he_encode_file(BitTable, Res) :-
-	open('file.txt', read, Str),
-	read_file(Str,Lines),
-	close(Str),
-	lines_to_chars(Lines, Chars),
-	flat_chars_list(Chars, Chars2),
-	encode_real(Chars2, BitTable, Res).
-
-%he_encode(Message, HuffmanTree, Bits) :-
-
-
-% he_generate_symbol_bits_table(HuffmanTree, SymbolBitsTable) :-
-
-test((X1, X2), [X1, X2]).
-
 write_spaces(0).
 
 write_spaces(Count) :-
@@ -272,17 +189,40 @@ write_tabs(Count) :-
 	SpaceCount is Count * 4,
 	write_spaces(SpaceCount).
 
-write_node_height([Height | _]) :- write(Height).
-
-% he_print_huffman_tree([], _) :- !.
-
-%he_print_huffman_tree([Weight, [Child1, Child2]
-
 print_first_half_line(IndentLevel, Weight) :-
 	write_tabs(IndentLevel),
 	write('('),
 	write(Weight),
 	write(')').
+
+he_decode(Bits, HuffmanTree, Message) :-
+	he_generate_symbol_bits_table(HuffmanTree, SymbolBitsTable),
+	decode(Bits, [], SymbolBitsTable, Message).
+
+he_encode(Message, HuffmanTree, Bits) :-
+	he_generate_symbol_bits_table(HuffmanTree, SymbolBitsTable),
+	encode(Message, SymbolBitsTable, Bits).
+
+he_encode_file(BitTable, Res) :-
+	open('file.txt', read, Str),
+	read_file(Str,Lines),
+	close(Str),
+	lines_to_chars(Lines, Chars),
+	flat_chars_list(Chars, Chars2),
+	encode_real(Chars2, BitTable, Res).
+
+%%% he_generate_huffman_tree/2
+%%% he_generate_huffman_tree(SymbolsAndWeights, HuffmanTree)
+%%% HuffmanTree is a huffman tree generated from SymbolsAndWeights.
+
+he_generate_huffman_tree(SymbolsAndWeights, HuffmanTree) :-
+	create_nodes(SymbolsAndWeights, Nodes),
+	sort_nodes(Nodes, SortedNodes),
+	final_generate_huffman(SortedNodes, HuffmanTree),
+	!.
+
+he_generate_symbol_bits_table([_, Nodes], SymbolBitsTable) :-
+	generate_symbol_bits_table(Nodes, [], SymbolBitsTable).
 
 he_print_huffman_tree([Weight, [Child1, Child2]], IndentLevel) :-
 	NextIndentLevel is IndentLevel + 1,
