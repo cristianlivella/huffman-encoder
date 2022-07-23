@@ -1,5 +1,10 @@
 <?php
 
+const SPECIAL_CHARS = [
+    PHP_EOL => 'Newline',
+    ' ' => 'Space'
+];
+
 $fileContent = file_get_contents('../file.txt');
 $fileContent = str_split($fileContent);
 
@@ -15,7 +20,9 @@ foreach ($fileContent as $char) {
 $pairs = [];
 
 foreach ($countRepetitions as $char => $count) {
-  $pairs[] = '[' . json_encode($char) . ', ' . $count . ']';
+    $char = '#\\' . (isset(SPECIAL_CHARS[$char]) ? SPECIAL_CHARS[$char] : $char);
+
+    $pairs[] = '(' . $char . ' . ' . $count . ')';
 }
 
-echo '[' . implode(', ', $pairs) . ']' . PHP_EOL;
+echo '(' . implode(' ', $pairs) . ')' . PHP_EOL;
