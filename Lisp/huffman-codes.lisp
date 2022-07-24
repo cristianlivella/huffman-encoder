@@ -39,11 +39,12 @@
 (defun decode (bits symbol-bits-table &optional bits-head)
   ((lambda (symbol)
      (cond
+      ((and (null bits) (not (null bits-head))) (error "Cannot find bits"))
       ((null bits) NIL)
       ((null symbol)
        (decode (cdr bits)
-	       symbol-bits-table
-	       (append bits-head (list (car bits)))))
+               symbol-bits-table
+               (append bits-head (list (car bits)))))
       (T (append (list symbol) (decode (cdr bits) symbol-bits-table (list))))))
    (get-symbol-from-bits
     symbol-bits-table
@@ -68,6 +69,7 @@
      (generate-symbol-bits-table
       (cdr (second huffman-tree))
       (append prefix '(1)))))
+   ((null prefix) (list (cons (car huffman-tree) (list 0))))
    (T (list (cons (car huffman-tree) prefix)))))
 
 ;;; Return a huffman tree from a list of nodes.
@@ -88,7 +90,7 @@
 ;;; Return a list of bits given a symbol bits table and a symbol to lookup.
 (defun get-bits-from-symbol (symbol-bits-table symbol)
   (cond
-   ((null symbol-bits-table) NIL)
+   ((null symbol-bits-table) (error "Cannot find symbol"))
    ((equal(car (first symbol-bits-table)) symbol)
     (cdr (first symbol-bits-table)))
    (T (get-bits-from-symbol (cdr symbol-bits-table) symbol))))
@@ -125,11 +127,11 @@
    (T (append
        (get-spaces (* indent-level 4))
        (list
+        #\(
+        (car huffman-tree)
+        #\)
+        #\Space
 	(car (cdr huffman-tree))
-	#\Space
-	#\(
-	(car huffman-tree)
-	#\)
 	#\Newline)))))
 
 ;;; API FUNCTIONS

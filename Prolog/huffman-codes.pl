@@ -12,8 +12,8 @@ list_contain([ToFind | _], ToFind) :- !.
 list_contain([_ | Tail], ToFind) :- list_contain(Tail, ToFind).
 
 %%% create_nodes/2
-%%% create_nodes(SymbolAndWeights, Nodes)
-%%% Nodes is a list of nodes (leaves) created from SymbolAndWeights.
+%%% create_nodes(SymbolsAndWeights, Nodes)
+%%% Nodes is a list of nodes (leaves) created from SymbolsAndWeights.
 
 create_nodes([(Symbol, Weight)], [(Weight, [Symbol])]).
 create_nodes([(Symbol, Weight) | Tail], [(Weight, [Symbol]) | NodesTail]) :-
@@ -130,15 +130,21 @@ union([], [L2 | L2T], [L2 | L3T]) :- union([], L2T, L3T).
 %%% generate_symbol_bits_table(Nodes, Prefix, SymbolBitsTable)
 %%% SymbolBitsTable is a list containg couples (Symbol, Bits).
 
+generate_symbol_bits_table([Node], [], [(Node, [0])]) :-
+    atom(Node),
+    !.
+
 generate_symbol_bits_table([Node], Prefix, [(Node, Prefix)]) :-
-    atom(Node).
+    atom(Node),
+    !.
 
 generate_symbol_bits_table([(_, ChildrenA), (_, ChildrenB)], Prefix, Solution) :-
     union(Prefix, [0], NodeAPrefix),
     union(Prefix, [1], NodeBPrefix),
     generate_symbol_bits_table(ChildrenA, NodeAPrefix, Res1),
     generate_symbol_bits_table(ChildrenB, NodeBPrefix, Res2),
-    union(Res1, Res2, Solution), !.
+    union(Res1, Res2, Solution),
+    !.
 
 %%% get_bits_for_symbol/3
 %%% get_bits_for_symbol(SymbolBitsTable, Symbol, Bits)

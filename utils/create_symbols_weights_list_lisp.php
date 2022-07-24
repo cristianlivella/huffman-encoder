@@ -5,7 +5,7 @@ const SPECIAL_CHARS = [
     ' ' => 'Space'
 ];
 
-$fileContent = file_get_contents('../file.txt');
+$fileContent = file_get_contents('file.txt');
 $fileContent = str_split($fileContent);
 
 $countRepetitions = [];
