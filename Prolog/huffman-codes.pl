@@ -102,7 +102,7 @@ prepend_new_node(FirstNode,
 group_first_two_nodes([(FirstW, FirstC), (SecondW, SecondC) | Rest], Node) :-
     SumWeight is FirstW + SecondW,
     prepend_new_node((FirstW, FirstC),
-		     (   SecondW, SecondC),
+		     (SecondW, SecondC),
 		     SumWeight,
 		     Rest,
 		     Node).
