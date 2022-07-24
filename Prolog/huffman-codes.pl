@@ -138,7 +138,10 @@ generate_symbol_bits_table([Node], Prefix, [(Node, Prefix)]) :-
     atom(Node),
     !.
 
-generate_symbol_bits_table([(_, ChildrenA), (_, ChildrenB)], Prefix, Solution) :-
+generate_symbol_bits_table([(_, ChildrenA), (_, ChildrenB)],
+			   Prefix,
+			   Solution) :-
+
     union(Prefix, [0], NodeAPrefix),
     union(Prefix, [1], NodeBPrefix),
     generate_symbol_bits_table(ChildrenA, NodeAPrefix, Res1),
@@ -151,7 +154,10 @@ generate_symbol_bits_table([(_, ChildrenA), (_, ChildrenB)], Prefix, Solution) :
 %%% Find the Bits of a given Symbol (or the Symbol of a given Bits list)
 %%% by looking up in the SymbolBitsTable.
 
-get_bits_for_symbol([(FirstSymbol, FirstBits) | _], FirstSymbol, FirstBits) :- !.
+get_bits_for_symbol([(FirstSymbol, FirstBits) | _],
+		    FirstSymbol,
+		    FirstBits) :- !.
+
 get_bits_for_symbol([_ | TailSymbolBitsTable], Symbol, Bits) :-
     get_bits_for_symbol(TailSymbolBitsTable, Symbol, Bits).
 
