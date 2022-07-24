@@ -64,7 +64,7 @@
    ((and (listp huffman-tree) (> (len huffman-tree) 1))
     (append
      (generate-symbol-bits-table
-      (cdr(first huffman-tree))
+      (cdr (first huffman-tree))
       (append prefix '(0)))
      (generate-symbol-bits-table
       (cdr (second huffman-tree))
@@ -91,7 +91,7 @@
 (defun get-bits-from-symbol (symbol-bits-table symbol)
   (cond
    ((null symbol-bits-table) (error "Cannot find symbol"))
-   ((equal(car (first symbol-bits-table)) symbol)
+   ((equal (car (first symbol-bits-table)) symbol)
     (cdr (first symbol-bits-table)))
    (T (get-bits-from-symbol (cdr symbol-bits-table) symbol))))
 
